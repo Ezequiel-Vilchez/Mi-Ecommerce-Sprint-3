@@ -9,7 +9,7 @@ const db = new Database(dbPath);
 const schemaPath = path.join(__dirname, 'db', 'schema.sql');
 const schema = fs.readFileSync(schemaPath, 'utf-8');
 db.exec(schema);
-console.log('📋 Tablas verificadas/creadas correctamente');
+console.log(' Tablas verificadas/creadas correctamente');
 
 
 const jsonPath = path.join(__dirname, 'data', 'productos.json');
@@ -38,13 +38,13 @@ const migrar = db.transaction((productos) => {
 
 try {
     migrar(productos);
-    console.log(`✅ ${productos.length} productos migrados correctamente a SQLite`);
+    console.log(` ${productos.length} productos migrados correctamente a SQLite`);
 } catch (error) {
-    console.error('❌ Error durante la migración:', error);
+    console.error('Error durante la migración:', error);
 }
 
 
 const total = db.prepare('SELECT COUNT(*) as total FROM products').get();
-console.log(`📦 Total de productos en la base de datos: ${total.total}`);
+console.log(` Total de productos en la base de datos: ${total.total}`);
 
 db.close();
