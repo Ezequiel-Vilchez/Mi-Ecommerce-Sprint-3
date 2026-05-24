@@ -25,12 +25,14 @@ const verCarrito = (req, res) => {
 
 const agregarProducto = (req, res) => {
     const product = normalizeId(req.params.id, res);
+    
     if (!product) return;
 
-    if (product.stock > 0) {
-        cartService.agregarProducto(req.session, product.id);
-    } else {
-        console.log("Alerta de seguridad: Intento de agregar producto sin stock.");
+    
+    const exito = cartService.agregarProducto(req.session, product.id);
+
+    if (!exito) {
+        console.log("Alerta de seguridad: Intento de agregar producto sin stock o inexistente.");
     }
 
     res.redirect('/cart');

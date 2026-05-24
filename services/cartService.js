@@ -1,4 +1,4 @@
-const productsService = require('./productsService');
+const db = require('../db/database')
 
 const cartService = {
 
@@ -12,19 +12,30 @@ const cartService = {
 
     agregarProducto: (session, productId) => {
         cartService.initCart(session);
-        const itemExistente = session.cart.find(item => item.productId === productId);
-        if (itemExistente) {
-            itemExistente.quantity += 1;
-        } else {
-            session.cart.push({ productId, quantity: 1 });
+        const consu = db.prepare('SELECT id, stock FROM products WHERE id = ?');
+        const producto = consu.get(productId);
+
+        if (producto && producto.stock > 0) {
+            const itemExiste = session.cart.find(item => item.productId === productId);
+            if(itemExiste){
+                if(itemExiste.quantity < producto.stock){
+                    itemExiste.quantity += 1;
+                }
+            } else{
+                session.cart.push({productId, quantity: 1});
+            }
+            return true;
         }
+        return false;
     },
 
 
     aumentarCantidad: (session, productId) => {
         cartService.initCart(session);
+        const aum = db.prepare('SELECT stock FROM products WHERE id = ?');
+        const producto = aum.get(productId)
         const item = session.cart.find(item => item.productId === productId);
-        if (item) {
+        if (item && producto && item.quantity < producto.stock) {
             item.quantity += 1;
         }
     },
@@ -47,21 +58,19 @@ const cartService = {
 
     getItems: (session) => {
         cartService.initCart(session);
-        return session.cart
-            .map(item => {
-                const producto = productsService.getById(item.productId);
-                if (!producto) return null; // Prevenir errores si el producto ya no existe en la DB
-                
-                return {
-                    productId: item.productId,
-                    quantity: item.quantity,
-                    nombre: producto.nombre,
-                    precio: producto.precio,
-                    imagen: producto.imagen,
-                    subtotal: producto.precio * item.quantity
-                };
-            })
-            .filter(item => item !== null); // Eliminar del renderizado productos inexistentes
+        return session.cart.map(item => {
+            const stmt = db.prepare('SELECT nombre, precio, imagen FROM products WHERE id = ?');
+            const producto = stmt.get(item.productId);
+
+            return {
+                productId: item.productId,
+                quantity: item.quantity,
+                nombre: producto.nombre,
+                precio: producto.precio,
+                imagen: producto.imagen ? producto.imagen : '/img/imagen-error.png',
+                subtotal: producto.precio * item.quantity
+            };
+        }).filter(item => item !== null);
     },
 
     calcularTotal: (items) => {

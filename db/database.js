@@ -15,7 +15,7 @@ const schema = fs.readFileSync(schemaPath, 'utf-8');
 
 try {
     db.exec(schema);
-    console.log("Base de datos SQLite inicializada correctamente 🚀");
+    console.log("Base de datos SQLite inicializada correctamente");
 } catch (error) {
     console.error("Error al crear las tablas en la base de datos:", error);
 }
